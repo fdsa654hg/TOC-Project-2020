@@ -16,21 +16,52 @@ load_dotenv(dotenv_path=path3,verbose=True)
 #load_dotenv()
 
 machine = TocMachine(
-    states=["user", "state1", "state2"],
+    states=[
+        "input_language",
+        "input_type",
+        "input_text",
+        "input_sound",
+        "show_text",
+        "show_sound"
+    ],
     transitions=[
         {
             "trigger": "advance",
             "source": "user",
-            "dest": "state1",
-            "conditions": "on_enter_state1",
+            "dest": "input_language",
+            "conditions": "on_enter_language",
         },
         {
             "trigger": "advance",
-            "source": "user",
-            "dest": "state2",
-            "conditions": "on_enter_state2",
+            "source": "input_language",
+            "dest": "input_type",
+            "conditions": "on_enter_type",
         },
-        {"trigger": "go_back", "source": ["state1", "state2"], "dest": "user"},
+        {
+            "trigger": "advance",
+            "source": "input_type",
+            "dest": "input_text",
+            "conditions": "on_enter_text",
+        },
+        {
+            "trigger": "advance",
+            "source": "input_type",
+            "dest": "input_sound",
+            "conditions": "on_enter_sound",
+        },
+        {
+            "trigger": "advance",
+            "source": "input_text",
+            "dest": "show_text",
+            "conditions": "on_enter_stext",
+        },
+        {
+            "trigger": "advance",
+            "source": "input_sound",
+            "dest": "show_sound",
+            "conditions": "on_enter_ssound",
+        },
+        {"trigger": "go_back", "source": ["input_language", "input_type", "input_text", "input_sound", "show_text", "show_sound"], "dest": "user"},
     ],
     initial="user",
     auto_transitions=False,
@@ -52,36 +83,11 @@ if channel_access_token is None:
 line_bot_api = LineBotApi(channel_access_token)
 parser = WebhookParser(channel_secret)
 
-
-@app.route("/callback", methods=["POST"])
-def callback():
-    signature = request.headers["X-Line-Signature"]
-    # get request body as text
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-
-    # parse webhook body
-    try:
-        events = parser.parse(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-
-    # if event is MessageEvent and message is TextMessage, then echo text
-    for event in events:
-        if not isinstance(event, MessageEvent):
-            continue
-        if not isinstance(event.message, TextMessage):
-            continue
-
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text=event.message.text)
-        )
-
-    return "OK"
-
+mode = 0
 
 @app.route("/webhook", methods=["POST"])
 def webhook_handler():
+    global mode
     signature = request.headers["X-Line-Signature"]
     # get request body as text
     body = request.get_data(as_text=True)
@@ -103,9 +109,30 @@ def webhook_handler():
             continue
         print(f"\nFSM STATE: {machine.state}")
         print(f"REQUEST BODY: \n{body}")
+
         response = machine.advance(event)
         if response == False:
-            send_text_message(event.reply_token, "Not Entering any State")
+            if machine.state == 'user':
+                send_text_message(event.reply_token, '輸入start開始翻譯')
+            elif machine.state != 'user' and event.message.text.lower() == 'restart':
+                send_text_message(event.reply_token, '輸入『fitness』即可開始使用健身小幫手。\n隨時輸入『chat』可以跟機器人聊天。\n隨時輸入『restart』可以從頭開始。\n隨時輸入『fsm』可以得到當下的狀態圖。')
+                machine.go_back()
+            elif machine.state == 'start':
+                send_text_message(event.reply_token, '想翻成什麼語言？')
+            elif machine.state == 'input_language':
+                send_text_message(event.reply_token, '以文字或是語音作為輸入？')
+            elif machine.state == 'input_text':
+                send_text_message(event.reply_token, '請輸入文字...')
+            elif machine.state == 'input_sound':
+                send_text_message(event.reply_token, '請輸入語音...')
+            elif machine.state == 'show_text':
+                send_text_message(event.reply_token, '以下是文字翻譯')
+            elif machine.state == 'show_sound':
+                send_text_message(event.reply_token, '以下是語音翻譯')
+            elif machine.state == 'restart':
+                send_text_message(event.reply_token, '是否繼續翻譯？')
+            
+
 
     return "OK"
 
