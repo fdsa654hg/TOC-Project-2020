@@ -1,1 +1,1 @@
-web: python app.py
+web: dot -c && python app.py
