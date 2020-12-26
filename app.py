@@ -96,11 +96,9 @@ def webhook_handler():
         if response == False:
             if event.message.text.lower() == 'graph':
                 show_fsm()
-                CLIENT_ID = "************"
                 PATH = "fsm.png"
                 im = pyimgur.Imgur('0d4674da318ab61')
                 uploaded_image = im.upload_image(PATH, title="Uploaded with PyImgur")
-                print(uploaded_image.link)
                 line_bot_api.reply_message(event.reply_token, ImageSendMessage(original_content_url=uploaded_image.link, preview_image_url=uploaded_image.link))
 
             elif machine.state == 'user':
