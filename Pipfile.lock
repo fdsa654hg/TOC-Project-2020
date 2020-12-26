@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d9d0c04a0d9724ae6806845103bbfd8fb12db4c4094468753b326a6562dfb0dc"
+            "sha256": "7147ca9863b9b70d6054315ac7a96a184b69e5c3c7c670bf803467d385a3c80b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -121,6 +121,13 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.10"
         },
+        "imgurpython": {
+            "hashes": [
+                "sha256:3ac28501c2f699a78f93a4ab34df7443cebd39a170c9de4adecf0f3852cbdc33"
+            ],
+            "index": "pypi",
+            "version": "==1.1.7"
+        },
         "itsdangerous": {
             "hashes": [
                 "sha256:321b033d07f2a4136d3ec762eac9f16a10ccd60f53c0c91af90217ace7ba1f19",
@@ -190,6 +197,14 @@
             ],
             "index": "pypi",
             "version": "==1.5"
+        },
+        "pyimgur": {
+            "hashes": [
+                "sha256:ad22deea062fe8e7412d0bdfc70cbf305a828c6390096d3523ed3d7dbeb2bdff",
+                "sha256:f776ca7f14663bd9ac14a1380db62c87ed32231d159d2d167ad1cb817dcb9144"
+            ],
+            "index": "pypi",
+            "version": "==0.6.0"
         },
         "python-dotenv": {
             "hashes": [

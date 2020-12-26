@@ -5,10 +5,12 @@ from flask import Flask, jsonify, request, abort, send_file
 from dotenv import load_dotenv
 from linebot import LineBotApi, WebhookParser
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
 
 from fsm import TocMachine
 from utils import send_text_message
+
+import pyimgur
 
 
 path3='development.env'
@@ -92,7 +94,16 @@ def webhook_handler():
 
         response = machine.advance(event)
         if response == False:
-            if machine.state == 'user':
+            if event.message.text.lower() == 'graph':
+                show_fsm()
+                CLIENT_ID = "************"
+                PATH = "fsm.png"
+                im = pyimgur.Imgur('0d4674da318ab61')
+                uploaded_image = im.upload_image(PATH, title="Uploaded with PyImgur")
+                print(uploaded_image.link)
+                line_bot_api.reply_message(event.reply_token, ImageSendMessage(original_content_url=uploaded_image.link, preview_image_url=uploaded_image.link))
+
+            elif machine.state == 'user':
                 send_text_message(event.reply_token, '輸入start開始翻譯')
             elif machine.state == 'start':
                 send_text_message(event.reply_token, '想翻成什麼語言？')
@@ -111,7 +122,6 @@ def show_fsm():
     machine.get_graph().draw("fsm.png", prog="dot", format="png")
     return send_file("fsm.png", mimetype="image/png")
 
-
 if __name__ == "__main__":
-    port = os.environ.get("PORT", 8000)
+    port = os.environ.get("PORT", 10000)
     app.run(host="0.0.0.0", port=port, debug=True)
