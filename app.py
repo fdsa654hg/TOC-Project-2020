@@ -96,7 +96,7 @@ def webhook_handler():
         if response == False:
             if event.message.text.lower() == 'graph':
                 show_fsm()
-                PATH = "fsm.png"
+                PATH = "fsm.svg"
                 im = pyimgur.Imgur('0d4674da318ab61')
                 uploaded_image = im.upload_image(PATH, title="Uploaded with PyImgur")
                 line_bot_api.reply_message(event.reply_token, ImageSendMessage(original_content_url=uploaded_image.link, preview_image_url=uploaded_image.link))
@@ -117,8 +117,8 @@ def webhook_handler():
 
 @app.route("/show-fsm", methods=["GET"])
 def show_fsm():
-    machine.get_graph().draw("fsm.png", prog="dot", format="png")
-    return send_file("fsm.png", mimetype="image/png")
+    machine.get_graph().draw("fsm.svg", prog="dot", format="svg")
+    return send_file("fsm.svg", mimetype="image/png")
 
 if __name__ == "__main__":
     port = os.environ.get("PORT", 10000)
