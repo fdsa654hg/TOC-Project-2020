@@ -10,6 +10,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from fsm import TocMachine
 from utils import send_text_message
 
+
 path3='development.env'
 load_dotenv(dotenv_path=path3,verbose=True)
 
@@ -18,50 +19,29 @@ load_dotenv(dotenv_path=path3,verbose=True)
 machine = TocMachine(
     states=[
         "input_language",
-        "input_type",
         "input_text",
-        "input_sound",
         "show_text",
-        "show_sound"
     ],
     transitions=[
         {
             "trigger": "advance",
             "source": "user",
             "dest": "input_language",
-            "conditions": "on_enter_language",
+            "conditions": "is_going_to_language",
         },
         {
             "trigger": "advance",
             "source": "input_language",
-            "dest": "input_type",
-            "conditions": "on_enter_type",
-        },
-        {
-            "trigger": "advance",
-            "source": "input_type",
             "dest": "input_text",
-            "conditions": "on_enter_text",
-        },
-        {
-            "trigger": "advance",
-            "source": "input_type",
-            "dest": "input_sound",
-            "conditions": "on_enter_sound",
+            "conditions": "is_going_to_text",
         },
         {
             "trigger": "advance",
             "source": "input_text",
             "dest": "show_text",
-            "conditions": "on_enter_stext",
+            "conditions": "is_going_to_stext",
         },
-        {
-            "trigger": "advance",
-            "source": "input_sound",
-            "dest": "show_sound",
-            "conditions": "on_enter_ssound",
-        },
-        {"trigger": "go_back", "source": ["input_language", "input_type", "input_text", "input_sound", "show_text", "show_sound"], "dest": "user"},
+        {"trigger": "go_back", "source": ["input_language",  "input_text",  "show_text"], "dest": "user"},
     ],
     initial="user",
     auto_transitions=False,
@@ -92,12 +72,12 @@ def webhook_handler():
     # get request body as text
     body = request.get_data(as_text=True)
     app.logger.info(f"Request body: {body}")
-
     # parse webhook body
     try:
         events = parser.parse(body, signature)
     except InvalidSignatureError:
         abort(400)
+
 
     # if event is MessageEvent and message is TextMessage, then echo text
     for event in events:
@@ -114,23 +94,12 @@ def webhook_handler():
         if response == False:
             if machine.state == 'user':
                 send_text_message(event.reply_token, '輸入start開始翻譯')
-            elif machine.state != 'user' and event.message.text.lower() == 'restart':
-                send_text_message(event.reply_token, '輸入『fitness』即可開始使用健身小幫手。\n隨時輸入『chat』可以跟機器人聊天。\n隨時輸入『restart』可以從頭開始。\n隨時輸入『fsm』可以得到當下的狀態圖。')
-                machine.go_back()
             elif machine.state == 'start':
                 send_text_message(event.reply_token, '想翻成什麼語言？')
-            elif machine.state == 'input_language':
-                send_text_message(event.reply_token, '以文字或是語音作為輸入？')
             elif machine.state == 'input_text':
                 send_text_message(event.reply_token, '請輸入文字...')
-            elif machine.state == 'input_sound':
-                send_text_message(event.reply_token, '請輸入語音...')
             elif machine.state == 'show_text':
-                send_text_message(event.reply_token, '以下是文字翻譯')
-            elif machine.state == 'show_sound':
-                send_text_message(event.reply_token, '以下是語音翻譯')
-            elif machine.state == 'restart':
-                send_text_message(event.reply_token, '是否繼續翻譯？')
+                send_text_message(event.reply_token, '輸入start重新開始翻譯')
             
 
 

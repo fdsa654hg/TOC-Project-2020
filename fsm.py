@@ -1,11 +1,10 @@
 from transitions.extensions import GraphMachine
-import googletrans
+from googletrans import Translator
 
-from utils import send_text_message
+from utils import send_text_message, send_button_message
 from linebot.models import MessageTemplateAction
 
 
-which = ''
 whichl = ''
 
 class TocMachine(GraphMachine):
@@ -16,71 +15,67 @@ class TocMachine(GraphMachine):
         text = event.message.text
         return text.lower() == 'start'
 
-    def on_enter_language(self, event):
+    def on_enter_input_language(self, event):
 
-        reply_token = event.reply_token
-        send_text_message(reply_token, "請輸入語種")
-
-    def is_going_to_type(self, event):
-        global whichl
-        text = event.message.text
-        send_text_message(reply_token, text)
-        if text == '中文':
-            whichl = text
-            return True
-        return False
-    
-    def on_enter_type(self, event):
-
-        title = '請選擇翻譯方式'
-        text = '您要『文字』還是『語音』'
+        title = '請選擇目標語種'
+        text = '想要翻譯成什麼語言呢'
         btn = [
             MessageTemplateAction(
-                label = '文字',
-                text ='文字'
+                label = '英文(English)',
+                text = '英文',
             ),
             MessageTemplateAction(
-                label = '語音',
-                text = '語音'
+                label = '日文(Japanese)',
+                text = '日文',
+            ),
+            MessageTemplateAction(
+                label = '韓文(Korean)',
+                text = '韓文',
+            ),
+            MessageTemplateAction(
+                label = '法文(French)',
+                text = '法文',
             ),
         ]
         send_button_message(event.reply_token, title, text, btn)
     
     def is_going_to_text(self, event):
-        global which
-        text = event.message.text
-
-        if text=='文字':
-            which = text
-            return True
-        return False
-
-    def on_enter_text(self, event):
-
-        reply_token = event.reply_token
-        send_text_message(reply_token, "文字已輸入")
-
-    def is_going_to_sound(self, event):
-        global which
-        text = event.message.text
-
-        if text=='語音':
-            which = text
-            return True
-        return False
-
-    def on_enter_sound(self, event):
-
-        reply_token = event.reply_token
-        send_text_message(reply_token, "語音已輸入")
-
-    def is_going_to_stext(self, event):
         global whichl
         text = event.message.text
-        translator = googletrans.Translator()
-        if whichl=='中文':
-            result = translator.translate('text', dest='zh-tw')
+
+        if text == '英文':
+            whichl = text
+            return True
+        elif text == '日文':
+            whichl = text
+            return True
+        elif text == '韓文':
+            whichl = text
+            return True
+        elif text == '法文':
+            whichl = text
+            return True
+
+        return False
+
+    def on_enter_input_text(self, event):
+
         reply_token = event.reply_token
+        send_text_message(reply_token, "請輸入文字")
+
+    def is_going_to_stext(self, event):
+        reply_token = event.reply_token
+        global whichl
+        text = event.message.text
+        translator = Translator()
+        if whichl=='英文':
+            result = translator.translate(text, dest='en').text
+        elif whichl=='日文':
+            result = translator.translate(text, dest='ja').text
+        elif whichl=='韓文':
+            result = translator.translate(text, dest='ko').text
+        elif whichl=='法文':
+            result = translator.translate(text, dest='fr').text
         if result is not None:
             whichl = result
             return True
@@ -88,18 +83,10 @@ class TocMachine(GraphMachine):
         return False
         
 
-    def on_enter_stext(self, event):
+    def on_enter_show_text(self, event):
         global whichl
         reply_token = event.reply_token
-        send_text_message(reply_token, whichl)
+        send_text_message(reply_token, whichl+'\n\n"請輸入start以重新開始"')
         self.go_back()
 
-    def is_going_to_ssound(self, event):
-        return True
-
-    def on_enter_ssound(self, event):
-
-        reply_token = event.reply_token
-        send_text_message(reply_token, "語音輸出")
-        self.go_back()
 
