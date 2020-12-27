@@ -8,7 +8,7 @@
 掃QR Code加入好友
 ![](https://i.imgur.com/qxmLCoL.png)
 
-### 功能
+## 功能
 1.輸入start開始翻譯
 
 2.選擇要翻譯成什麼語言
